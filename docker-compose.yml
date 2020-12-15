@@ -1,0 +1,38 @@
+version: '2.4'
+services:
+  db:
+    build:
+      context: .
+      dockerfile: ./docker/db/Dockerfile
+    restart: always
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q" ]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+    container_name: golang_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./docker/db/init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
+    tty: true
+
+  app:
+    build:
+      context: .
+      dockerfile: ./docker/server/Dockerfile
+    container_name: golang_app
+    ports:
+      - "80:8080"
+    tty: true
+    # Wait for database to become available
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  my-db:
