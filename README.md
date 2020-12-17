@@ -27,3 +27,13 @@ After spinning up the App, you should be able to see the “pong” message retu
 
 Configure database connection info and secret etc. which already populate in '.env'
 
+## For developers
+
+### Steps
+```bash
+# Spin up database in dev
+$ make start-dev-db
+
+# Go run
+$ go run main.go  
+```

@@ -13,20 +13,15 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+const (
+	layout = "2006-01-02"
+)
+
 //GetAnswerByKey ...
 func GetAnswerByKey(answer *Answer, key string) (err error) {
-	var rows *sql.Rows
-	rows, err = config.DB.Table("answer").Select(
-		"key, value").Where("key = ?", key).Order(
-		"create_date desc").Limit(1).Rows()
-	defer rows.Close()
-	if err != nil {
-		return err
-	}
-	if rows.Next() {
-		config.DB.ScanRows(rows, &answer)
-	} else {
-		return exception.New(http.StatusNotFound)
+	result := config.DB.First(answer)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return exception.NewWithError(http.StatusNotFound, result.Error)
 	}
 	return nil
 }
@@ -35,8 +30,7 @@ func GetAnswerByKey(answer *Answer, key string) (err error) {
 func GetAnswerHistoryByKey(histories *[]History, key string) (err error) {
 	var rows *sql.Rows
 	rows, err = config.DB.Table("history").Select(
-		"event, data").Where(
-		"event IN ?", []string{"create", "update", "delete"}).Order(
+		"event, data").Where("event IN (?)", []string{"create", "update", "delete"}).Order(
 		"create_date asc").Rows()
 	defer rows.Close()
 	if err != nil {
@@ -52,7 +46,7 @@ func GetAnswerHistoryByKey(histories *[]History, key string) (err error) {
 
 //UpdateAnswerByKey ...
 func UpdateAnswerByKey(key, value string) (err error) {
-	err = config.DB.Model(&Answer{}).Where("key = ?", key).Update("value", value).Error
+	err = config.DB.Model(&Answer{}).Where("key = ?", key).Update("val", value).Error
 	if err != nil {
 		return err
 	}
@@ -77,17 +71,27 @@ func DeleteAnswerByKey(key string) (err error) {
 }
 
 //CreateAnswerByKey ...
-func CreateAnswerByKey(key, value string) (err error) {
-	answer := new(Answer)
+func CreateAnswerByKey(answer *Answer) (err error) {
+	answerCheck := new(Answer)
 	// check if answer exist
-	result := config.DB.Where("key = ? AND value = ?", key, value).First(&answer)
+	result := config.DB.Where("key = ?", answer.Key).First(&answerCheck)
 	if result.RowsAffected > 0 {
-		return exception.NewWithError(http.StatusBadRequest, errors.New("The answer is already exists"))
+		return exception.NewWithError(http.StatusBadRequest, errors.New("the answer already exists"))
 	}
 
 	// create new answer
-	newAnswer := Answer{Key: key, Value: value, CreateDate: time.Now()}
-	result = config.DB.Create(&newAnswer)
+	result = config.DB.Create(answer)
+	if result.Error != nil {
+		return err
+	}
+	return nil
+}
+
+//SaveToHistory ... Save data manipulation log to history
+func SaveToHistory(event string, data *Answer) (err error) {
+	today := time.Now()
+	history := History{Event: event, Key: data.Key, Data: *data, CreateDate: today}
+	result := config.DB.Create(&history)
 	if result.Error != nil {
 		return err
 	}
