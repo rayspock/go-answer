@@ -1,14 +1,15 @@
 package routes
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/rayspock/go-answer/controllers"
 	h "github.com/rayspock/go-answer/utils/handler"
 
 	"github.com/gin-gonic/gin"
+	"github.com/swaggo/files"       // swagger embed files
 	"github.com/swaggo/gin-swagger" // gin-swagger middleware
-	"github.com/swaggo/files" // swagger embed files
 
 	"github.com/rayspock/go-answer/docs"
 )
@@ -28,7 +29,7 @@ func SetupRouter() *gin.Engine {
 	docs.SwaggerInfo.Title = "Bequest Backend Assignment"
 	docs.SwaggerInfo.Description = "API and developer documentation."
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "localhost:3000"
+	docs.SwaggerInfo.Host = fmt.Sprintf("localhost:%s", os.Getenv("PORT"))
 	docs.SwaggerInfo.BasePath = "/api"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 

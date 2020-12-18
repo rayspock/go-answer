@@ -16,7 +16,7 @@ services:
       retries: 10
     container_name: golang_db
     ports:
-      - "5432:5432"
+      - "5432"
     volumes:
       - db-data:/var/lib/postgresql/data
       - ./docker/db/init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
@@ -28,11 +28,11 @@ services:
       dockerfile: ./docker/server/Dockerfile
     container_name: golang_app
     ports:
-      - "80:8080"
+      - "3000:3000"
     tty: true
     # Wait for database to become available
     depends_on:
       db:
         condition: service_healthy
 volumes:
-  my-db:
+  db-data:
