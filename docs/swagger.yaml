@@ -1,3 +1,41 @@
+definitions:
+  exception.HTTPError:
+    properties:
+      code:
+        example: 400
+        type: integer
+      message:
+        example: status bad request
+        type: string
+    type: object
+  models.Answer:
+    properties:
+      key:
+        example: name
+        type: string
+      value:
+        example: John
+        type: string
+    required:
+    - key
+    - value
+    type: object
+  models.AnswerPayload:
+    properties:
+      value:
+        example: John
+        type: string
+    required:
+    - value
+    type: object
+  models.History:
+    properties:
+      data:
+        $ref: '#/definitions/models.Answer'
+      event:
+        example: create
+        type: string
+    type: object
 info:
   contact:
     email: support@swagger.io
@@ -7,5 +45,168 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
-paths: {}
+paths:
+  /answer/:
+    post:
+      consumes:
+      - application/json
+      description: create answer
+      parameters:
+      - description: Answer
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.Answer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/exception.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/exception.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/exception.HTTPError'
+      summary: create answer
+  /answer/{key}:
+    delete:
+      consumes:
+      - application/json
+      description: delete answer
+      parameters:
+      - description: Answer key
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/exception.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/exception.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/exception.HTTPError'
+      summary: delete answer
+    get:
+      consumes:
+      - application/json
+      description: get answer (returns the latest answer for the given key)
+      parameters:
+      - description: Answer key
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Answer'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/exception.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/exception.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/exception.HTTPError'
+      summary: get answer by Key
+    put:
+      consumes:
+      - application/json
+      description: update answer
+      parameters:
+      - description: Answer key
+        in: path
+        name: key
+        required: true
+        type: string
+      - description: Answer value
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.AnswerPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/exception.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/exception.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/exception.HTTPError'
+      summary: update answer
+  /answer/{key}/history:
+    get:
+      consumes:
+      - application/json
+      description: get history for given key (returns an array of events in chronological
+        order)
+      parameters:
+      - description: Answer key
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.History'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/exception.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/exception.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/exception.HTTPError'
+      summary: get answer's history by key
 swagger: "2.0"

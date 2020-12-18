@@ -10,6 +10,12 @@ type RequestError struct {
 	Err error
 }
 
+//HTTPError ... HTTP Error format
+type HTTPError struct {
+	Code    int    `json:"code" example:"400"`
+	Message string `json:"message" example:"status bad request"`
+}
+
 //NewWithError ... returns an request error that formats as the given text.
 //Each call to NewWithError returns a distinct error value even if the text is identical.
 func NewWithError(code int, err error) *RequestError {

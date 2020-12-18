@@ -2,7 +2,6 @@
 package models
 
 import (
-	"database/sql"
 	"errors"
 	"net/http"
 	"time"
@@ -19,7 +18,7 @@ const (
 
 //GetAnswerByKey ...
 func GetAnswerByKey(answer *Answer, key string) (err error) {
-	result := config.DB.First(answer)
+	result := config.DB.Where("key = ?", key).First(answer)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return exception.NewWithError(http.StatusNotFound, result.Error)
 	}
@@ -28,44 +27,38 @@ func GetAnswerByKey(answer *Answer, key string) (err error) {
 
 //GetAnswerHistoryByKey ...
 func GetAnswerHistoryByKey(histories *[]History, key string) (err error) {
-	var rows *sql.Rows
-	rows, err = config.DB.Table("history").Select(
-		"event, data").Where("event IN (?)", []string{"create", "update", "delete"}).Order(
-		"create_date asc").Rows()
-	defer rows.Close()
-	if err != nil {
-		return err
-	}
-	for rows.Next() {
-		var history History
-		config.DB.ScanRows(rows, &history)
-		*histories = append(*histories, history)
-	}
-	return nil
-}
-
-//UpdateAnswerByKey ...
-func UpdateAnswerByKey(key, value string) (err error) {
-	err = config.DB.Model(&Answer{}).Where("key = ?", key).Update("val", value).Error
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-//DeleteAnswerByKey ...
-func DeleteAnswerByKey(key string) (err error) {
-	answer := new(Answer)
-	result := config.DB.Take(&answer)
+	result := config.DB.Select("event, data").Find(
+		histories, "event IN (?) and key = ?", []string{"create", "update", "delete"}, key).Order(
+		"create_date asc")
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return exception.NewWithError(http.StatusNotFound, result.Error)
 	}
 	if result.Error != nil {
 		return err
 	}
-	err = config.DB.Delete(&Answer{}).Where("key = ?", key).Error
-	if err != nil {
-		return err
+	return nil
+}
+
+//UpdateAnswerByKey ...
+func UpdateAnswerByKey(key, value string) (err error) {
+	result := config.DB.Model(&Answer{}).Where("key = ?", key).Update("val", value)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected <= 0 {
+		return exception.NewWithError(http.StatusBadRequest, errors.New("the answer doesn't exist or has been deleted"))
+	}
+	return nil
+}
+
+//DeleteAnswerByKey ...
+func DeleteAnswerByKey(key string) (err error) {
+	result := config.DB.Where("key = ?", key).Delete(&Answer{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected <= 0 {
+		return exception.NewWithError(http.StatusBadRequest, errors.New("the answer doesn't exist or has been deleted"))
 	}
 	return nil
 }
@@ -90,7 +83,7 @@ func CreateAnswerByKey(answer *Answer) (err error) {
 //SaveToHistory ... Save data manipulation log to history
 func SaveToHistory(event string, data *Answer) (err error) {
 	today := time.Now()
-	history := History{Event: event, Key: data.Key, Data: *data, CreateDate: today}
+	history := History{Event: event, Key: data.Key, Data: *data, CreateDate: &today}
 	result := config.DB.Create(&history)
 	if result.Error != nil {
 		return err

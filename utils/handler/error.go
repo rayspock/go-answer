@@ -16,10 +16,18 @@ func ErrorHandler(f func(*gin.Context) error) gin.HandlerFunc {
 		if err != nil {
 			log.Println(err)
 			if re, ok := err.(*exception.RequestError); ok {
-				c.AbortWithError(re.Code, re)
+				er := exception.HTTPError{
+					Code:    re.Code,
+					Message: re.Error(),
+				}
+				c.AbortWithStatusJSON(re.Code, er)
 				return;
 			}
-			c.AbortWithError(http.StatusInternalServerError, err)
+			er := exception.HTTPError{
+				Code:    http.StatusInternalServerError,
+				Message: "Internal Server Error",
+			}
+			c.AbortWithStatusJSON(http.StatusInternalServerError, er)
 		}
 	}
 }

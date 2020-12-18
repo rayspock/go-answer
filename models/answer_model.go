@@ -8,8 +8,8 @@ import (
 
 // Answer ... represent Answer detail
 type Answer struct {
-	Key string `gorm:"not null" json:"key,omitempty"`
-	Val string `gorm:"not null" json:"value,omitempty"`
+	Key string `gorm:"not null" json:"key,omitempty" binding:"required" example:"name"`
+	Val string `gorm:"not null" json:"value,omitempty" binding:"required" example:"John"`
 }
 
 // TableName retrieve Table Name
@@ -36,5 +36,5 @@ func (a *Answer) Scan(value interface{}) error {
 
 // AnswerPayload ... http request type
 type AnswerPayload struct {
-	Value string
+	Value string `binding:"required" example:"John"`
 }

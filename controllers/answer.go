@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/rayspock/go-answer/models"
+	"github.com/rayspock/go-answer/utils/exception"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,10 +16,10 @@ import (
 // @Accept  json
 // @Produce  json
 // @Param key path string true "Answer key"
-// @Success 200 {string} string "answer"
-// @Failure 400 {string} string "ok"
-// @Failure 404 {string} string "ok"
-// @Failure 500 {string} string "ok"
+// @Success 200 {object} models.Answer
+// @Failure 400 {object} exception.HTTPError
+// @Failure 404 {object} exception.HTTPError
+// @Failure 500 {object} exception.HTTPError
 // @Router /answer/{key} [get]
 func GetAnswerByKey(c *gin.Context) error {
 	key := c.Param("key")
@@ -38,10 +39,10 @@ func GetAnswerByKey(c *gin.Context) error {
 // @Accept  json
 // @Produce  json
 // @Param key path string true "Answer key"
-// @Success 200 {string} string "answer"
-// @Failure 400 {string} string "ok"
-// @Failure 404 {string} string "ok"
-// @Failure 500 {string} string "ok"
+// @Success 200 {object} []models.History
+// @Failure 400 {object} exception.HTTPError
+// @Failure 404 {object} exception.HTTPError
+// @Failure 500 {object} exception.HTTPError
 // @Router /answer/{key}/history [get]
 func GetAnswerHistoryByKey(c *gin.Context) error {
 	key := c.Param("key")
@@ -60,23 +61,25 @@ func GetAnswerHistoryByKey(c *gin.Context) error {
 // @Accept  json
 // @Produce  json
 // @Param key path string true "Answer key"
-// @Success 200 {string} string "answer"
-// @Failure 400 {string} string "ok"
-// @Failure 404 {string} string "ok"
-// @Failure 500 {string} string "ok"
+// @Param body body models.AnswerPayload true "Answer value"
+// @Success 200 {string} string "success"
+// @Failure 400 {object} exception.HTTPError
+// @Failure 404 {object} exception.HTTPError
+// @Failure 500 {object} exception.HTTPError
 // @Router /answer/{key} [put]
 func UpdateAnswerByKey(c *gin.Context) error {
 	var payload models.AnswerPayload
 	key := c.Param("key")
-	c.BindJSON(&payload)
-	err := models.UpdateAnswerByKey(key, payload.Value)
-	if err != nil {
-		return err
+	if err := c.ShouldBindJSON(&payload); err == nil {
+		err := models.UpdateAnswerByKey(key, payload.Value)
+		if err != nil {
+			return err
+		}
+		models.SaveToHistory("update", &models.Answer{Key: key, Val: payload.Value})
+		c.String(http.StatusOK, "success")
+	} else {
+		return exception.NewWithError(http.StatusBadRequest, err)
 	}
-	models.SaveToHistory("update", &models.Answer{Key: key, Val: payload.Value})
-	c.JSON(http.StatusOK, gin.H{
-		"result": "success",
-	})
 	return nil
 }
 
@@ -85,23 +88,24 @@ func UpdateAnswerByKey(c *gin.Context) error {
 // @Description create answer
 // @Accept  json
 // @Produce  json
-// @Param key path string true "Answer key"
-// @Success 200 {string} string "answer"
-// @Failure 400 {string} string "ok"
-// @Failure 404 {string} string "ok"
-// @Failure 500 {string} string "ok"
+// @Param body body models.Answer true "Answer"
+// @Success 200 {string} string "success"
+// @Failure 400 {object} exception.HTTPError
+// @Failure 404 {object} exception.HTTPError
+// @Failure 500 {object} exception.HTTPError
 // @Router /answer/ [post]
 func CreateAnswerByKey(c *gin.Context) error {
 	var answer models.Answer
-	c.BindJSON(&answer)
-	err := models.CreateAnswerByKey(&answer)
-	if err != nil {
-		return err
+	if err := c.ShouldBindJSON(&answer); err == nil {
+		err := models.CreateAnswerByKey(&answer)
+		if err != nil {
+			return err
+		}
+		models.SaveToHistory("create", &answer)
+		c.String(http.StatusOK, "success")
+	} else {
+		return exception.NewWithError(http.StatusBadRequest, err)
 	}
-	models.SaveToHistory("create", &answer)
-	c.JSON(http.StatusOK, gin.H{
-		"result": "success",
-	})
 	return nil
 }
 
@@ -111,10 +115,10 @@ func CreateAnswerByKey(c *gin.Context) error {
 // @Accept  json
 // @Produce  json
 // @Param key path string true "Answer key"
-// @Success 200 {string} string "answer"
-// @Failure 400 {string} string "ok"
-// @Failure 404 {string} string "ok"
-// @Failure 500 {string} string "ok"
+// @Success 200 {string} string "success"
+// @Failure 400 {object} exception.HTTPError
+// @Failure 404 {object} exception.HTTPError
+// @Failure 500 {object} exception.HTTPError
 // @Router /answer/{key} [delete]
 func DeleteAnswerByKey(c *gin.Context) error {
 	key := c.Param("key")
@@ -123,8 +127,6 @@ func DeleteAnswerByKey(c *gin.Context) error {
 		return err
 	}
 	models.SaveToHistory("delete", &models.Answer{Key: key})
-	c.JSON(http.StatusOK, gin.H{
-		"result": "success",
-	})
+	c.String(http.StatusOK, "success")
 	return nil
 }

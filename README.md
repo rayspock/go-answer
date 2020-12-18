@@ -18,7 +18,11 @@ $ make run
 ```
 
 ## APIs Endpoint
-After spinning up the App, you should be able to see the “pong” message return by navigating to this endpoint: http://localhost/api/ping
+After spinning up the App, you should be able to see the “pong” message return by navigating to this endpoint: http://localhost:3000/api/ping
+
+## Documentation (Powered by Swagger)
+
+http://localhost:3000/docs/index.html
 
 ## Environment variables
 
@@ -35,5 +39,13 @@ Configure database connection info and secret etc. which already populate in '.e
 $ make start-dev-db
 
 # Go run
-$ go run main.go  
+$ make dev
+
+# Go test
+$ make test
+```
+
+### Generate Swagger API Docs
+```bash
+$ make docs
 ```

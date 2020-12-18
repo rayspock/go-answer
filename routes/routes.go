@@ -28,7 +28,7 @@ func SetupRouter() *gin.Engine {
 	docs.SwaggerInfo.Title = "Bequest Backend Assignment"
 	docs.SwaggerInfo.Description = "API and developer documentation."
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "localhost"
+	docs.SwaggerInfo.Host = "localhost:3000"
 	docs.SwaggerInfo.BasePath = "/api"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
@@ -46,7 +46,7 @@ func SetupRouter() *gin.Engine {
 		grp.POST("answer", h.ErrorHandler(controllers.CreateAnswerByKey))
 		grp.DELETE("answer/:key", h.ErrorHandler(controllers.DeleteAnswerByKey))
 	}
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return r
 }

@@ -1,7 +1,13 @@
-.PHONY: run
+.PHONY: dev test docs run
 
-# Health check port for database
-hc_port = 8805
+dev:
+	go run main.go
+
+test:
+	go test -v ./...
+
+docs: ## Generate swagger api documentation
+	swag init -g routes/routes.go
 
 # Docker Tasks
 run: ## Spin up the app and database
