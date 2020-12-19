@@ -26,6 +26,7 @@ services:
     build:
       context: .
       dockerfile: ./docker/server/Dockerfile
+    restart: always
     container_name: golang_app
     ports:
       - "3000:3000"
