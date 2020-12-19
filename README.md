@@ -1,4 +1,4 @@
-# Bequest Backend Assignment
+# Bequest Backend Challenge
 
 ## Environment
 
