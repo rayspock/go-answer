@@ -22,6 +22,21 @@ func GetAnswerByKey(answer *Answer, key string) (err error) {
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return exception.NewWithError(http.StatusNotFound, result.Error)
 	}
+	if (result.Error != nil) {
+		return result.Error
+	}
+	return nil
+}
+
+//GetAllAnswer ... 
+func GetAllAnswer(answers *[]Answer) (err error) {
+	result := config.DB.Find(answers)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return exception.NewWithError(http.StatusNotFound, result.Error)
+	}
+	if (result.Error != nil) {
+		return result.Error
+	}
 	return nil
 }
 

@@ -20,7 +20,7 @@ func main() {
 	log.Println("Connect to database...")
 	config.DB, err = gorm.Open("postgres", config.DbURL(config.BuildDBConfig()))
 	if err != nil {
-		log.Println("Status:", err)
+		log.Panic(err)
 	}
 	defer config.DB.Close()
 

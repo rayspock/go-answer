@@ -73,6 +73,52 @@ func TestGetAnswerByKey(t *testing.T) {
 	}
 }
 
+func TestGetAllAnswer(t *testing.T) {
+	var mock sqlmock.Sqlmock
+	initMockDB(&mock, t)
+
+	tests := []struct {
+		name      string
+		key       string
+		mock      func()
+		expect    *[]Answer
+		expectErr bool
+	}{
+		{
+			//When everything works as expected
+			name: "OK",
+			mock: func() {
+				//We added one row
+				rows := sqlmock.NewRows([]string{"key", "val"}).AddRow("name", "john")
+				const sql = `SELECT * FROM "answer"`
+				mock.ExpectQuery(regexp.QuoteMeta(sql)).WillReturnRows(rows)
+			},
+			expect: &[]Answer{{
+				Key: "name",
+				Val: "john",
+			}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.mock()
+			var result []Answer
+			err := GetAllAnswer(&result)
+			if err != nil {
+				if tt.expectErr {
+					assert.EqualError(t, err, gorm.ErrRecordNotFound.Error())
+				} else {
+					t.Errorf("GetAllAnswer() error new = %v", err)
+					return
+				}
+			}
+			if err == nil && !reflect.DeepEqual(result, *tt.expect) {
+				t.Errorf("Received = %v, expected: %v", result, *tt.expect)
+			}
+		})
+	}
+}
+
 func TestGetAnswerHistoryByKey(t *testing.T) {
 	var mock sqlmock.Sqlmock
 	initMockDB(&mock, t)
@@ -199,8 +245,8 @@ func TestDeleteAnswerByKey(t *testing.T) {
 	}{
 		{
 			//When everything works as expected
-			name:  "OK",
-			key:   "name",
+			name: "OK",
+			key:  "name",
 			mock: func() {
 				const sql = `DELETE FROM "answer" WHERE (key = $1)`
 
@@ -237,8 +283,8 @@ func TestCreateAnswerByKey(t *testing.T) {
 	}{
 		{
 			//When everything works as expected
-			name:  "OK",
-			answer:   &Answer{
+			name: "OK",
+			answer: &Answer{
 				Key: "name",
 				Val: "John",
 			},
@@ -283,13 +329,13 @@ func TestSaveToHistory(t *testing.T) {
 			//When everything works as expected
 			name:  "OK",
 			event: "create",
-			answer:   &Answer{
+			answer: &Answer{
 				Key: "name",
 				Val: "John",
 			},
 			mock: func() {
 				const sqlInsert = `INSERT INTO "history" ("event","key","data","create_date") VALUES ($1,$2,$3,$4)`
-				
+
 				mock.ExpectBegin()
 				mock.ExpectExec(regexp.QuoteMeta(sqlInsert)).
 					WithArgs("create", "name", &Answer{
@@ -320,7 +366,6 @@ func (a AnyTime) Match(v driver.Value) bool {
 	_, ok := v.(time.Time)
 	return ok
 }
-
 
 func initMockDB(mock *sqlmock.Sqlmock, t *testing.T) {
 	var db *sql.DB

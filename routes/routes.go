@@ -52,6 +52,7 @@ func SetupRouter() *gin.Engine {
 		grp.GET("/ping", func(c *gin.Context) {
 			c.String(200, "pong")
 		})
+		grp.GET("answer", h.ErrorHandler(controllers.GetAllAnswer))
 		grp.GET("answer/:key", h.ErrorHandler(controllers.GetAnswerByKey))
 		grp.GET("answer/:key/history", h.ErrorHandler(controllers.GetAnswerHistoryByKey))
 		grp.PUT("answer/:key", h.ErrorHandler(controllers.UpdateAnswerByKey))

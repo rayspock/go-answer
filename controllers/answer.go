@@ -31,8 +31,27 @@ func GetAnswerByKey(c *gin.Context) error {
 	if err != nil {
 		return err
 	}
-	models.SaveToHistory("get", &answer)
 	c.JSON(http.StatusOK, answer)
+	return nil
+}
+
+// GetAllAnswer godoc
+// @Summary get all answer
+// @Description get all answer
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} []models.Answer
+// @Failure 400 {object} exception.HTTPError
+// @Failure 404 {object} exception.HTTPError
+// @Failure 500 {object} exception.HTTPError
+// @Router /answer [get]
+func GetAllAnswer(c *gin.Context) error {
+	var answers []models.Answer
+	err := models.GetAllAnswer(&answers)
+	if err != nil {
+		return err
+	}
+	c.JSON(http.StatusOK, answers)
 	return nil
 }
 
@@ -102,7 +121,7 @@ func UpdateAnswerByKey(c *gin.Context) error {
 // @Failure 400 {object} exception.HTTPError
 // @Failure 404 {object} exception.HTTPError
 // @Failure 500 {object} exception.HTTPError
-// @Router /answer/ [post]
+// @Router /answer [post]
 func CreateAnswerByKey(c *gin.Context) error {
 	var answer models.Answer
 	if err := c.ShouldBindJSON(&answer); err == nil {

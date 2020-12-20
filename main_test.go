@@ -97,6 +97,28 @@ func TestGetAnswerByKey(t *testing.T) {
 	assert.Equal(t, resp["message"], "record not found")
 }
 
+func TestGetAllAnswer(t *testing.T) {
+	path := "/answer"
+
+	// Create 1 record
+	payload := []byte(`{
+		"key": "country",
+		"value": "UK"
+	}`)
+	w := performPost("POST", router, path, bytes.NewBuffer(payload))
+
+	// Everything work as expected
+	w = performRequest(router, path)
+	var resp []models.Answer
+	err = json.NewDecoder(w.Body).Decode(&resp)
+	if err != nil {
+		log.Fatalf("JSON Decode fail: %v", err)
+	}
+	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, resp[0].Val, "John")
+	assert.GreaterOrEqual(t, len(resp), 2)
+}
+
 func TestGetAnswerHistoryByKey(t *testing.T) {
 	path := "/answer/name/history"
 

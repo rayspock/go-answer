@@ -46,7 +46,33 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
 paths:
-  /answer/:
+  /answer:
+    get:
+      consumes:
+      - application/json
+      description: get all answer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Answer'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/exception.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/exception.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/exception.HTTPError'
+      summary: get all answer
     post:
       consumes:
       - application/json
