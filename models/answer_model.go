@@ -38,3 +38,8 @@ func (a *Answer) Scan(value interface{}) error {
 type AnswerPayload struct {
 	Value string `binding:"required" example:"John"`
 }
+
+// ParamPayload ... Uri parameter type
+type ParamPayload struct {
+	Key string `uri:"key" binding:"required" example:"name"`
+}

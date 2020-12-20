@@ -22,9 +22,12 @@ import (
 // @Failure 500 {object} exception.HTTPError
 // @Router /answer/{key} [get]
 func GetAnswerByKey(c *gin.Context) error {
-	key := c.Param("key")
+	var payload models.ParamPayload
+	if err := c.ShouldBindUri(&payload); err != nil {
+		return exception.NewWithError(http.StatusBadRequest, err)
+	}
 	var answer models.Answer
-	err := models.GetAnswerByKey(&answer, key)
+	err := models.GetAnswerByKey(&answer, payload.Key)
 	if err != nil {
 		return err
 	}
@@ -45,9 +48,12 @@ func GetAnswerByKey(c *gin.Context) error {
 // @Failure 500 {object} exception.HTTPError
 // @Router /answer/{key}/history [get]
 func GetAnswerHistoryByKey(c *gin.Context) error {
-	key := c.Param("key")
+	var payload models.ParamPayload
+	if err := c.ShouldBindUri(&payload); err != nil {
+		return exception.NewWithError(http.StatusBadRequest, err)
+	}
 	var histories []models.History
-	err := models.GetAnswerHistoryByKey(&histories, key)
+	err := models.GetAnswerHistoryByKey(&histories, payload.Key)
 	if err != nil {
 		return err
 	}
@@ -68,14 +74,17 @@ func GetAnswerHistoryByKey(c *gin.Context) error {
 // @Failure 500 {object} exception.HTTPError
 // @Router /answer/{key} [put]
 func UpdateAnswerByKey(c *gin.Context) error {
-	var payload models.AnswerPayload
-	key := c.Param("key")
-	if err := c.ShouldBindJSON(&payload); err == nil {
-		err := models.UpdateAnswerByKey(key, payload.Value)
+	var payload models.ParamPayload
+	var answerPayload models.AnswerPayload
+	if err := c.ShouldBindUri(&payload); err != nil {
+		return exception.NewWithError(http.StatusBadRequest, err)
+	}
+	if err := c.ShouldBindJSON(&answerPayload); err == nil {
+		err := models.UpdateAnswerByKey(payload.Key, answerPayload.Value)
 		if err != nil {
 			return err
 		}
-		models.SaveToHistory("update", &models.Answer{Key: key, Val: payload.Value})
+		models.SaveToHistory("update", &models.Answer{Key: payload.Key, Val: answerPayload.Value})
 		c.String(http.StatusOK, "success")
 	} else {
 		return exception.NewWithError(http.StatusBadRequest, err)
@@ -121,12 +130,15 @@ func CreateAnswerByKey(c *gin.Context) error {
 // @Failure 500 {object} exception.HTTPError
 // @Router /answer/{key} [delete]
 func DeleteAnswerByKey(c *gin.Context) error {
-	key := c.Param("key")
-	err := models.DeleteAnswerByKey(key)
+	var payload models.ParamPayload
+	if err := c.ShouldBindUri(&payload); err != nil {
+		return exception.NewWithError(http.StatusBadRequest, err)
+	}
+	err := models.DeleteAnswerByKey(payload.Key)
 	if err != nil {
 		return err
 	}
-	models.SaveToHistory("delete", &models.Answer{Key: key})
+	models.SaveToHistory("delete", &models.Answer{Key: payload.Key})
 	c.String(http.StatusOK, "success")
 	return nil
 }
