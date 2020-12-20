@@ -2,11 +2,13 @@ package routes
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/rayspock/go-answer/controllers"
 	h "github.com/rayspock/go-answer/utils/handler"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"       // swagger embed files
 	"github.com/swaggo/gin-swagger" // gin-swagger middleware
@@ -35,8 +37,17 @@ func SetupRouter() *gin.Engine {
 
 	gin.SetMode(os.Getenv("GIN_MODE"))
 	r := gin.Default()
+
+	log.Println("Setup CORS...")
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{"http://localhost:4000"}
+	// To be able to send tokens to the server.
+	corsConfig.AllowCredentials = true
+	// OPTIONS method for ReactJS
+	corsConfig.AddAllowMethods("OPTIONS")
+
 	grp := r.Group("/api")
-	grp.Use()
+	grp.Use(cors.New(corsConfig))
 	{
 		grp.GET("/ping", func(c *gin.Context) {
 			c.String(200, "pong")
