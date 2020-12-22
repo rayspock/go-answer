@@ -55,6 +55,8 @@ func SetupRouter() *gin.Engine {
 		grp.GET("answer", h.ErrorHandler(controllers.GetAllAnswer))
 		grp.GET("answer/:key", h.ErrorHandler(controllers.GetAnswerByKey))
 		grp.GET("answer/:key/history", h.ErrorHandler(controllers.GetAnswerHistoryByKey))
+		grp.OPTIONS("answer", preflight)
+		grp.OPTIONS("answer/:key", preflight)
 		grp.PUT("answer/:key", h.ErrorHandler(controllers.UpdateAnswerByKey))
 		grp.POST("answer", h.ErrorHandler(controllers.CreateAnswerByKey))
 		grp.DELETE("answer/:key", h.ErrorHandler(controllers.DeleteAnswerByKey))
@@ -62,4 +64,8 @@ func SetupRouter() *gin.Engine {
 	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return r
+}
+
+func preflight(c *gin.Context) {
+	c.AbortWithStatus(204)
 }
